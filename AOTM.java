@@ -12,30 +12,40 @@ public class AOTM {
 	
 	public static void game (int mode) {
 		//Declarations
-		Brain.Q_table = Brain.importQtable();
+		
+		// BOTS
+		Brain.Q_table = Brain.importQtable(); // Inport old table
+		double DECAY = 0.025; // Rate to decay liklihood of random actions
+		int SHOW_EVERY = 1;  // How often to show round during training
+
+		// MAP
 		Map thai = new Map(12);
-		int SHOW_EVERY = 1;
-		boolean render = true;
-		boolean alive;
-		boolean game = true;
-		boolean dead = false;
-		double DECAY = 0.025;
+		boolean render = true; // whether or not to draw map
+		
+		// Game controllers
+		boolean alive; // If the player or at least one enemy are alive
+		boolean game = true;  // if the game is playing
+		boolean dead = false; // If the player has died
 		
 		//Player
 		String input;
+		
+		// Get the player's name
 		if (mode == 0) {
 		input = event("What is your name?");
 		} else {input = "BOT";}
-		Player avatar = new Player(input, '@', Map.map.length/2, Map.map.length/2);
+		Player avatar = new Player(input, '@', Map.map.length/2, Map.map.length/2); // set the player in the middle
 		
 		//Arrays
-		ArrayList<Weapon> weapons = new ArrayList<Weapon>();
-		Militant[] army;
+		ArrayList<Weapon> weapons = new ArrayList<Weapon>(); // create weapons list
+		Militant[] army; // The enemies
 		
 		
 		//MAIN GAME LOOP
 		while (game) {
 			Map.round++;
+			
+			// If the rate of random isn't too low, decay it
 			if (Brain.epsilon > 0.005) {
 				Brain.epsilon -= DECAY;
 			}
@@ -46,37 +56,34 @@ public class AOTM {
 			avatar.hp = 100;
 			avatar.x = Map.map.length/2+1;
 			avatar.y = Map.map.length/2+1;
+			
 			//Produce agents
 			army = newAgentBatch(mode);
+			
 			//Set map size
-			if (mode == 0) {
+			if (mode == 0) { // If not training
 				thai = new Map(Map.round + 14);
 			}
 			else {
 				thai = new Map(50);
 			}
-			//Print the map
+			
+			// If it's time to draw the map
 			if (render) {
-				Map.printMap(avatar, army, weapons);
+				Map.printMap(avatar, army, weapons); // print the map
+				Brain.exportQtable(Map.round); // export the current table
 			}
 			
-			//see if program should export the table
-			if (render) {
-				Brain.exportQtable(Map.round);
-			}
-			
-			
-			
-			//Round loop
+			//Round loop ( while the player and at least one enemy live
 			alive = true;
 			while (alive) {
 				
-				//Determine whether nor not to render
+				//Determine whether nor not to render during training
 				if (mode == 1 && Map.round % SHOW_EVERY != 0) {
 					render = false;
 				} else {render = true;}
 				
-				//Determine when to break the loop
+				// If the player dies give the optino to go back to main menu
 				if(avatar.hp <= 0) {
 					alive = false;
 					if (mode == 0) {
@@ -100,10 +107,9 @@ public class AOTM {
 					}
 				}
 				
-				//TOOO implement scoring system
-				//For now will just be how many rounds you survived for.
 				Map.update(avatar, army, weapons, true, render); //Show current locations
-				//Player turn
+				
+				// If the player is playing, let them give input
 				if (mode == 0) {
 					input = Start.userInput(); //If player is human
 					Brain.epsilon = 0.25;
@@ -111,12 +117,14 @@ public class AOTM {
 				
 				//MOVE
 				Map.update(avatar, army, weapons, false, render); //Remove old locations
-				Player.move(avatar, input, army, weapons);
+				Player.move(avatar, input, army, weapons); // Move the player
 				
 				//AI TURN
-				for (int self = 0; self < army.length; self++) {					
+				for (int self = 0; self < army.length; self++) {	
+					
 					//Allow AI to act
-					army = checkIfDead(self, army);
+					army = checkIfDead(self, army); // Remove the dead
+					
 					if (self < army.length && army.length > 0) {
 						army[self].move( army[self], avatar, army );
 					}
