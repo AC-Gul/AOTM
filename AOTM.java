@@ -46,7 +46,12 @@ public class AOTM {
 			Map.round++;
 			
 			// If the rate of random isn't too low, decay it
-			if (Brain.epsilon > 0.005) {
+			if (mode == 0) 
+			{
+				brain.epsilon = 0;
+			}
+			
+			else if (Brain.epsilon > 0.005) {
 				Brain.epsilon -= DECAY;
 			}
 			
@@ -112,7 +117,6 @@ public class AOTM {
 				// If the player is playing, let them give input
 				if (mode == 0) {
 					input = Start.userInput(); //If player is human
-					Brain.epsilon = 0.25;
 				}
 				
 				//MOVE
