@@ -48,7 +48,7 @@ public class AOTM {
 			// If the rate of random isn't too low, decay it
 			if (mode == 0) 
 			{
-				brain.epsilon = 0;
+				Brain.epsilon = 0;
 			}
 			
 			else if (Brain.epsilon > 0.005) {
